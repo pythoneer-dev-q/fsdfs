@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Server Status</title>
+    <title>NotAVPN Status</title>
     <style>
         :root {
             --bg: #0f172a;
@@ -65,7 +65,7 @@
     <div id="loader" class="loader">Обновление данных...</div>
 
     <script>
-        const WORKER_URL = 'https://ваш-воркер.workers.dev/'; // ЗАМЕНИТЕ НА ВАШ
+        const WORKER_URL = 'https://api-status.not-a-projects.xyz/';
         let updateInterval;
 
         async function fetchStatus() {
