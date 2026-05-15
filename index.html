@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Status</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --online: #22c55e;
+            --offline: #ef4444;
+        }
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+        h1 { margin-bottom: 30px; font-weight: 300; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+        .node-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        .node-card:hover { transform: translateY(-2px); }
+        .info { display: flex; flex-direction: column; }
+        .name { font-weight: bold; font-size: 1.1em; }
+        .version { font-size: 0.8em; opacity: 0.5; margin-top: 4px; }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .connected { background: rgba(34, 197, 94, 0.2); color: var(--online); }
+        .error, .disabled { background: rgba(239, 68, 68, 0.2); color: var(--offline); }
+        .loader { font-size: 0.9em; opacity: 0.6; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h1>System Status</h1>
+    <div id="nodes-grid" class="grid">
+        <!-- Ноды появятся здесь -->
+    </div>
+    <div id="loader" class="loader">Обновление данных...</div>
+
+    <script>
+        const WORKER_URL = 'https://ваш-воркер.workers.dev/'; // ЗАМЕНИТЕ НА ВАШ
+        let updateInterval;
+
+        async function fetchStatus() {
+            const loader = document.getElementById('loader');
+            loader.style.opacity = '1';
+            
+            try {
+                const response = await fetch(WORKER_URL);
+                const data = await response.json();
+                renderNodes(data);
+            } catch (err) {
+                console.error('Ошибка:', err);
+            } finally {
+                loader.style.opacity = '0';
+            }
+        }
+
+        function renderNodes(nodes) {
+            const container = document.getElementById('nodes-grid');
+            container.innerHTML = nodes.map(node => `
+                <div class="node-card">
+                    <div class="info">
+                        <span class="name">${node.name}</span>
+                        <span class="version">Xray ${node.version}</span>
+                    </div>
+                    <div class="status-badge ${node.status}">
+                        ${node.status === 'connected' ? '● Online' : '● Offline'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function startAutoUpdate() {
+            fetchStatus();
+            updateInterval = setInterval(fetchStatus, 60000); // Раз в минуту
+        }
+
+        // Умное обновление: только если вкладка активна
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(updateInterval);
+            } else {
+                startAutoUpdate();
+            }
+        });
+
+        // Первый запуск
+        startAutoUpdate();
+    </script>
+</body>
+</html>
